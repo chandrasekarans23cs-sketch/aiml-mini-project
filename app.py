@@ -71,7 +71,7 @@ if not st.session_state.show_results:
     calc = st.slider("Calcium (mg/dL)", 0.1, 15.0)
 
     if st.button("Predict"):
-        st.session_state.inputs = {
+        inputs = {
             "gravity": gravity,
             "ph": ph,
             "osmo": osmo,
@@ -79,8 +79,14 @@ if not st.session_state.show_results:
             "urea": urea,
             "calc": calc
         }
-        st.session_state.show_results = True
-        st.rerun()   # ✅ updated
+
+        # Validation: check if all values are provided
+        if any(v is None or v == "" for v in inputs.values()):
+            st.warning("Please input your levels")
+        else:
+            st.session_state.inputs = inputs
+            st.session_state.show_results = True
+            st.rerun()
 
 # -----------------------------
 # Results Page
@@ -112,4 +118,4 @@ else:
 
     if st.button("Back to Input Page"):
         st.session_state.show_results = False
-        st.rerun()   # ✅ updated
+        st.rerun()
