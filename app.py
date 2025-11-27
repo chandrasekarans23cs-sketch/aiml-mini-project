@@ -12,17 +12,23 @@ from sklearn.linear_model import LogisticRegression
 # -----------------------------
 @st.cache_resource
 def train_models():
-    # Load dataset
     df = pd.read_csv("kidney-stone-dataset.csv")
 
-    # Detect target column automatically (last column assumed if not named)
+    # Detect target column automatically
     if "target" in df.columns:
         target_col = "target"
     else:
         target_col = df.columns[-1]
 
-    # Use only the 6 features you collect from the user
-    selected_features = ["gravity", "ph", "osmo", "cond", "urea", "calc"]
+    # Use descriptive feature names (must match dataset columns!)
+    selected_features = [
+        "Urine Specific Gravity",
+        "Urine pH",
+        "Osmolality",
+        "Conductivity",
+        "Urea",
+        "Calcium"
+    ]
 
     # Check dataset has these columns
     missing = [f for f in selected_features if f not in df.columns]
@@ -63,7 +69,6 @@ if not st.session_state.show_results:
     st.title("Kidney Stone Prediction - Input Page")
     st.write("Developed by CHANDRASEKARAN S & Team")
 
-    # Sliders with defaults
     gravity = st.slider("Urine Specific Gravity", 1.005, 1.035, value=1.005, step=0.001)
     ph = st.slider("Urine pH", 4.5, 8.0, value=4.5, step=0.1)
     osmo = st.slider("Osmolality", 100, 1300, value=100)
@@ -73,22 +78,22 @@ if not st.session_state.show_results:
 
     # Default values for validation
     default_values = {
-        "gravity": 1.005,
-        "ph": 4.5,
-        "osmo": 100,
-        "cond": 5.0,
-        "urea": 10,
-        "calc": 0.1
+        "Urine Specific Gravity": 1.005,
+        "Urine pH": 4.5,
+        "Osmolality": 100,
+        "Conductivity": 5.0,
+        "Urea": 10,
+        "Calcium": 0.1
     }
 
     if st.button("Predict"):
         inputs = {
-            "gravity": gravity,
-            "ph": ph,
-            "osmo": osmo,
-            "cond": cond,
-            "urea": urea,
-            "calc": calc
+            "Urine Specific Gravity": gravity,
+            "Urine pH": ph,
+            "Osmolality": osmo,
+            "Conductivity": cond,
+            "Urea": urea,
+            "Calcium": calc
         }
 
         # Validation: check if all inputs are still default
@@ -107,14 +112,14 @@ else:
 
     inputs = st.session_state.inputs
     st.subheader("Entered Values")
-    st.write(inputs)
+    st.write(inputs)  # ✅ shows descriptive labels now
 
-    input_data = np.array([[inputs["gravity"],
-                            inputs["ph"],
-                            inputs["osmo"],
-                            inputs["cond"],
-                            inputs["urea"],
-                            inputs["calc"]]])
+    input_data = np.array([[inputs["Urine Specific Gravity"],
+                            inputs["Urine pH"],
+                            inputs["Osmolality"],
+                            inputs["Conductivity"],
+                            inputs["Urea"],
+                            inputs["Calcium"]]])
     input_scaled = scaler.transform(input_data)
 
     rf_pred = rf_model.predict(input_scaled)[0]
