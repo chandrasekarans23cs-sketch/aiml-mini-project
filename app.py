@@ -63,12 +63,23 @@ if not st.session_state.show_results:
     st.title("Kidney Stone Prediction - Input Page")
     st.write("Developed by CHANDRASEKARAN S & Team")
 
-    gravity = st.slider("Urine Specific Gravity", 1.005, 1.035, step=0.001)
-    ph = st.slider("Urine pH", 4.5, 8.0, step=0.1)
-    osmo = st.slider("Osmolality", 100, 1300)
-    cond = st.slider("Conductivity", 5.0, 40.0)
-    urea = st.slider("Urea (mg/dL)", 10, 650)
-    calc = st.slider("Calcium (mg/dL)", 0.1, 15.0)
+    # Sliders with defaults
+    gravity = st.slider("Urine Specific Gravity", 1.005, 1.035, value=1.005, step=0.001)
+    ph = st.slider("Urine pH", 4.5, 8.0, value=4.5, step=0.1)
+    osmo = st.slider("Osmolality", 100, 1300, value=100)
+    cond = st.slider("Conductivity", 5.0, 40.0, value=5.0)
+    urea = st.slider("Urea (mg/dL)", 10, 650, value=10)
+    calc = st.slider("Calcium (mg/dL)", 0.1, 15.0, value=0.1)
+
+    # Default values for validation
+    default_values = {
+        "gravity": 1.005,
+        "ph": 4.5,
+        "osmo": 100,
+        "cond": 5.0,
+        "urea": 10,
+        "calc": 0.1
+    }
 
     if st.button("Predict"):
         inputs = {
@@ -80,8 +91,8 @@ if not st.session_state.show_results:
             "calc": calc
         }
 
-        # Validation: check if all values are provided
-        if any(v is None or v == "" for v in inputs.values()):
+        # Validation: check if all inputs are still default
+        if inputs == default_values:
             st.warning("Please input your levels")
         else:
             st.session_state.inputs = inputs
