@@ -71,7 +71,7 @@ if not st.session_state.show_results:
             "Calcium": calc
         }
         st.session_state.show_results = True
-        st.experimental_rerun()
+        st.rerun()   # ✅ updated
 
 # -----------------------------
 # Results Page
@@ -103,4 +103,4 @@ else:
 
     if st.button("Back to Input Page"):
         st.session_state.show_results = False
-        st.experimental_rerun()
+        st.rerun()   # ✅ updated
