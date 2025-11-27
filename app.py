@@ -32,63 +32,34 @@ lr_model = LogisticRegression(max_iter=1000, random_state=42)
 lr_model.fit(X_train, y_train)
 
 # -----------------------------
-# Sidebar navigation
+# Streamlit UI
 # -----------------------------
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Enter Input", "Show Results"])
+st.title("Kidney Stone Prediction App")
+st.write("Developed by CHANDRASEKARAN S & Team")
 
-# -----------------------------
-# Page 1: Input collection
-# -----------------------------
-if page == "Enter Input":
-    st.title("Kidney Stone Prediction - Input Page")
-    st.write("Developed by CHANDRASEKARAN S & Team")
+# Input fields
+gravity = st.slider("Urine Specific Gravity", 1.005, 1.035, step=0.001)
+ph = st.slider("Urine pH", 4.5, 8.0, step=0.1)
+osmo = st.slider("Osmolality", 100, 1300)
+cond = st.slider("Conductivity", 5.0, 40.0)
+urea = st.slider("Urea (mg/dL)", 10, 650)
+calc = st.slider("Calcium (mg/dL)", 0.1, 15.0)
 
-    # Model choice
-    st.session_state.model_choice = st.selectbox(
-        "Choose Model", ["Random Forest", "Logistic Regression"]
-    )
+# Model choice tab
+tab1, tab2 = st.tabs(["Random Forest", "Logistic Regression"])
 
-    # Input fields
-    st.session_state.gravity = st.slider("Urine Specific Gravity", 1.005, 1.035, step=0.001)
-    st.session_state.ph = st.slider("Urine pH", 4.5, 8.0, step=0.1)
-    st.session_state.osmo = st.slider("Osmolality", 100, 1300)
-    st.session_state.cond = st.slider("Conductivity", 5.0, 40.0)
-    st.session_state.urea = st.slider("Urea (mg/dL)", 10, 650)
-    st.session_state.calc = st.slider("Calcium (mg/dL)", 0.1, 15.0)
-
-    st.info("Go to the 'Show Results' page to see your prediction.")
-
-# -----------------------------
-# Page 2: Display input + output
-# -----------------------------
-elif page == "Show Results":
-    st.title("Kidney Stone Prediction - Results Page")
-
-    # Display entered values
-    st.subheader("Entered Input Values")
-    st.write(f"Urine Specific Gravity: {st.session_state.gravity}")
-    st.write(f"Urine pH: {st.session_state.ph}")
-    st.write(f"Osmolality: {st.session_state.osmo}")
-    st.write(f"Conductivity: {st.session_state.cond}")
-    st.write(f"Urea: {st.session_state.urea}")
-    st.write(f"Calcium: {st.session_state.calc}")
-    st.write(f"Chosen Model: {st.session_state.model_choice}")
-
-    # Prepare input for prediction
-    input_data = np.array([[st.session_state.gravity,
-                            st.session_state.ph,
-                            st.session_state.osmo,
-                            st.session_state.cond,
-                            st.session_state.urea,
-                            st.session_state.calc]])
-    input_scaled = scaler.transform(input_data)
-
-    # Predict
-    if st.session_state.model_choice == "Random Forest":
+with tab1:
+    if st.button("Predict with Random Forest"):
+        input_data = np.array([[gravity, ph, osmo, cond, urea, calc]])
+        input_scaled = scaler.transform(input_data)
         prediction = rf_model.predict(input_scaled)
-    else:
-        prediction = lr_model.predict(input_scaled)
+        result = "High Risk of Kidney Stone" if prediction[0] == 1 else "Low Risk"
+        st.success(f"Random Forest Prediction: {result}")
 
-    result = "High Risk of Kidney Stone" if prediction[0] == 1 else "Low Risk"
-    st.success(f"Prediction Result: {result}")
+with tab2:
+    if st.button("Predict with Logistic Regression"):
+        input_data = np.array([[gravity, ph, osmo, cond, urea, calc]])
+        input_scaled = scaler.transform(input_data)
+        prediction = lr_model.predict(input_scaled)
+        result = "High Risk of Kidney Stone" if prediction[0] == 1 else "Low Risk"
+        st.success(f"Logistic Regression Prediction: {result}")
