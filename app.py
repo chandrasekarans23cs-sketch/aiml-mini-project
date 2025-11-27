@@ -1,6 +1,56 @@
+# -*- coding: utf-8 -*-
+import pandas as pd
+import numpy as np
+import streamlit as st
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# -----------------------------
+# Load and train models once
+# -----------------------------
+@st.cache_resource
+def train_models():
+    df = pd.read_csv("kidney-stone-dataset.csv")
+
+    # Detect target column automatically
+    if "target" in df.columns:
+        target_col = "target"
+    else:
+        target_col = df.columns[-1]
+
+    # Use short feature names to match dataset
+    selected_features = ["gravity", "ph", "osmo", "cond", "urea", "calc"]
+
+    # Check dataset has these columns
+    missing = [f for f in selected_features if f not in df.columns]
+    if missing:
+        st.error(f"Dataset is missing expected columns: {missing}")
+        st.stop()
+
+    X = df[selected_features]
+    y = df[target_col]
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=42
+    )
+
+    rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+    rf_model.fit(X_train, y_train)
+
+    lr_model = LogisticRegression(max_iter=1000, random_state=42)
+    lr_model.fit(X_train, y_train)
+
+    return scaler, rf_model, lr_model, X_test, y_test, selected_features
+
+scaler, rf_model, lr_model, X_test, y_test, selected_features = train_models()
 
 # -----------------------------
 # Page control
