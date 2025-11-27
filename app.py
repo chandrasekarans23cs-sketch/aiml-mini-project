@@ -45,21 +45,31 @@ cond = st.slider("Conductivity", 5.0, 40.0)
 urea = st.slider("Urea (mg/dL)", 10, 650)
 calc = st.slider("Calcium (mg/dL)", 0.1, 15.0)
 
-# Model choice tab
-tab1, tab2 = st.tabs(["Random Forest", "Logistic Regression"])
+# Predict button
+if st.button("Predict"):
+    input_data = np.array([[gravity, ph, osmo, cond, urea, calc]])
+    input_scaled = scaler.transform(input_data)
 
-with tab1:
-    if st.button("Predict with Random Forest"):
-        input_data = np.array([[gravity, ph, osmo, cond, urea, calc]])
-        input_scaled = scaler.transform(input_data)
-        prediction = rf_model.predict(input_scaled)
-        result = "High Risk of Kidney Stone" if prediction[0] == 1 else "Low Risk"
-        st.success(f"Random Forest Prediction: {result}")
+    # Predictions
+    rf_pred = rf_model.predict(input_scaled)[0]
+    lr_pred = lr_model.predict(input_scaled)[0]
 
-with tab2:
-    if st.button("Predict with Logistic Regression"):
-        input_data = np.array([[gravity, ph, osmo, cond, urea, calc]])
-        input_scaled = scaler.transform(input_data)
-        prediction = lr_model.predict(input_scaled)
-        result = "High Risk of Kidney Stone" if prediction[0] == 1 else "Low Risk"
-        st.success(f"Logistic Regression Prediction: {result}")
+    rf_result = "High Risk of Kidney Stone" if rf_pred == 1 else "Low Risk"
+    lr_result = "High Risk of Kidney Stone" if lr_pred == 1 else "Low Risk"
+
+    # -----------------------------
+    # Results Page
+    # -----------------------------
+    st.subheader("Entered Values")
+    st.write({
+        "Urine Specific Gravity": gravity,
+        "Urine pH": ph,
+        "Osmolality": osmo,
+        "Conductivity": cond,
+        "Urea": urea,
+        "Calcium": calc
+    })
+
+    st.subheader("Predictions")
+    st.success(f"Random Forest: {rf_result}")
+    st.success(f"Logistic Regression: {lr_result}")
