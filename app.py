@@ -12,11 +12,17 @@ from sklearn.linear_model import LogisticRegression
 # -----------------------------
 @st.cache_resource
 def train_models():
+    # Load dataset
     df = pd.read_csv("kidney-stone-dataset.csv")
-    df.drop(columns=df.columns[0], inplace=True)
 
-    X = df.drop("target", axis=1)
-    y = df["target"]
+    # Detect target column automatically (last column assumed if not named)
+    if "target" in df.columns:
+        target_col = "target"
+    else:
+        target_col = df.columns[-1]  # assume last column is target
+
+    X = df.drop(target_col, axis=1)
+    y = df[target_col]
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
