@@ -59,7 +59,8 @@ if "show_results" not in st.session_state:
 # Input Page
 # -----------------------------
 if not st.session_state.show_results:
-    st.title("Kidney Stone Prediction - Input Page")
+    st.title("Kidney Stone Prediction")
+    st.subheader("Home Page")
     st.write("Developed by CHANDRASEKARAN S & Team")
 
     # Sliders with defaults
@@ -102,8 +103,8 @@ if not st.session_state.show_results:
 # Results Page
 # -----------------------------
 else:
-    st.title("Kidney Stone Prediction - Results Page")
-
+    st.title("Kidney Stone Prediction")
+    st.subheader("Results Page")
     inputs = st.session_state.inputs
     st.subheader("Entered Values")
 
