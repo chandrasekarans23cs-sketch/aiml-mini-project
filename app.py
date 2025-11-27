@@ -105,7 +105,7 @@ if not st.session_state.show_results:
 else:
     st.title("Kidney Stone Prediction Model")
     #st.subheader("Results Page")
-    st.write("Developed by CHANDRASEKARAN S & Team)
+    st.write("Developed by CHANDRASEKARAN S & Team")
     inputs = st.session_state.inputs
     st.subheader("Entered Values")
 
