@@ -1,69 +1,20 @@
-# -*- coding: utf-8 -*-
-import pandas as pd
-import numpy as np
-import streamlit as st
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-
-# -----------------------------
-# Load and train models once
-# -----------------------------
-@st.cache_resource
-def train_models():
-    df = pd.read_csv("kidney-stone-dataset.csv")
-
-    # Detect target column automatically
-    if "target" in df.columns:
-        target_col = "target"
-    else:
-        target_col = df.columns[-1]
-
-    # Use short feature names to match dataset
-    selected_features = ["gravity", "ph", "osmo", "cond", "urea", "calc"]
-
-    # Check dataset has these columns
-    missing = [f for f in selected_features if f not in df.columns]
-    if missing:
-        st.error(f"Dataset is missing expected columns: {missing}")
-        st.stop()
-
-    X = df[selected_features]
-    y = df[target_col]
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.2, random_state=42
-    )
-
-    rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
-    rf_model.fit(X_train, y_train)
-
-    lr_model = LogisticRegression(max_iter=1000, random_state=42)
-    lr_model.fit(X_train, y_train)
-
-    return scaler, rf_model, lr_model
-
-scaler, rf_model, lr_model = train_models()
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # -----------------------------
 # Page control
 # -----------------------------
-if "show_results" not in st.session_state:
-    st.session_state.show_results = False
+if "page" not in st.session_state:
+    st.session_state.page = "input"   # options: input, results, evaluation
 
 # -----------------------------
 # Input Page
 # -----------------------------
-if not st.session_state.show_results:
+if st.session_state.page == "input":
     st.title("Kidney Stone Prediction Model")
-    #st.subheader("Home Page")
     st.write("Developed by CHANDRASEKARAN S & Team")
 
-    # Sliders with defaults
     gravity = st.slider("Urine Specific Gravity", 1.005, 1.035, value=1.005, step=0.001)
     ph = st.slider("Urine pH", 4.5, 8.0, value=4.5, step=0.1)
     osmo = st.slider("Osmolality", 100, 1300, value=100)
@@ -71,72 +22,36 @@ if not st.session_state.show_results:
     urea = st.slider("Urea (mg/dL)", 10, 650, value=10)
     calc = st.slider("Calcium (mg/dL)", 0.1, 15.0, value=0.1)
 
-    # Default values for validation
-    default_values = {
-        "gravity": 1.005,
-        "ph": 4.5,
-        "osmo": 100,
-        "cond": 5.0,
-        "urea": 10,
-        "calc": 0.1
-    }
+    default_values = {"gravity":1.005,"ph":4.5,"osmo":100,"cond":5.0,"urea":10,"calc":0.1}
 
     if st.button("Predict"):
-        inputs = {
-            "gravity": gravity,
-            "ph": ph,
-            "osmo": osmo,
-            "cond": cond,
-            "urea": urea,
-            "calc": calc
-        }
-
-        # Validation: check if all inputs are still default
+        inputs = {"gravity":gravity,"ph":ph,"osmo":osmo,"cond":cond,"urea":urea,"calc":calc}
         if inputs == default_values:
             st.warning("Please input your levels")
         else:
             st.session_state.inputs = inputs
-            st.session_state.show_results = True
+            st.session_state.page = "results"
             st.rerun()
+
+    if st.button("Evaluate Models"):
+        st.session_state.page = "evaluation"
+        st.rerun()
 
 # -----------------------------
 # Results Page
 # -----------------------------
-else:
+elif st.session_state.page == "results":
     st.title("Kidney Stone Prediction Model")
-    #st.subheader("Results Page")
     st.write("Developed by CHANDRASEKARAN S & Team")
     inputs = st.session_state.inputs
-    st.subheader("Entered Values")
 
-    # Show descriptive labels in a clean table
     entered_values = pd.DataFrame({
-        "Parameter": [
-            "Urine Specific Gravity",
-            "Urine pH",
-            "Osmolality",
-            "Conductivity",
-            "Urea",
-            "Calcium"
-        ],
-        "Value": [
-            inputs["gravity"],
-            inputs["ph"],
-            inputs["osmo"],
-            inputs["cond"],
-            inputs["urea"],
-            inputs["calc"]
-        ]
+        "Parameter":["Urine Specific Gravity","Urine pH","Osmolality","Conductivity","Urea","Calcium"],
+        "Value":[inputs["gravity"],inputs["ph"],inputs["osmo"],inputs["cond"],inputs["urea"],inputs["calc"]]
     })
-
     st.table(entered_values)
 
-    input_data = np.array([[inputs["gravity"],
-                            inputs["ph"],
-                            inputs["osmo"],
-                            inputs["cond"],
-                            inputs["urea"],
-                            inputs["calc"]]])
+    input_data = np.array([[inputs["gravity"],inputs["ph"],inputs["osmo"],inputs["cond"],inputs["urea"],inputs["calc"]]])
     input_scaled = scaler.transform(input_data)
 
     rf_pred = rf_model.predict(input_scaled)[0]
@@ -150,5 +65,60 @@ else:
     st.success(f"Logistic Regression: {lr_result}")
 
     if st.button("Back to Input Page"):
-        st.session_state.show_results = False
+        st.session_state.page = "input"
+        st.rerun()
+
+    if st.button("Evaluate Models"):
+        st.session_state.page = "evaluation"
+        st.rerun()
+
+# -----------------------------
+# Evaluation Page
+# -----------------------------
+elif st.session_state.page == "evaluation":
+    st.title("Model Evaluation")
+    st.write("Performance metrics on test data")
+
+    # Predictions
+    y_pred_rf = rf_model.predict(X_test)
+    y_pred_lr = lr_model.predict(X_test)
+
+    st.subheader("Accuracy")
+    st.write(f"Random Forest: {accuracy_score(y_test, y_pred_rf):.2f}")
+    st.write(f"Logistic Regression: {accuracy_score(y_test, y_pred_lr):.2f}")
+
+    st.subheader("Classification Report")
+    st.text("Random Forest:\n" + classification_report(y_test, y_pred_rf))
+    st.text("Logistic Regression:\n" + classification_report(y_test, y_pred_lr))
+
+    st.subheader("Confusion Matrix")
+    cm_rf = confusion_matrix(y_test, y_pred_rf)
+    fig, ax = plt.subplots()
+    sns.heatmap(cm_rf, annot=True, fmt="d", cmap="Blues", ax=ax)
+    ax.set_title("Random Forest Confusion Matrix")
+    st.pyplot(fig)
+
+    cm_lr = confusion_matrix(y_test, y_pred_lr)
+    fig, ax = plt.subplots()
+    sns.heatmap(cm_lr, annot=True, fmt="d", cmap="Greens", ax=ax)
+    ax.set_title("Logistic Regression Confusion Matrix")
+    st.pyplot(fig)
+
+    st.subheader("ROC Curve")
+    rf_probs = rf_model.predict_proba(X_test)[:,1]
+    lr_probs = lr_model.predict_proba(X_test)[:,1]
+    fpr_rf, tpr_rf, _ = roc_curve(y_test, rf_probs)
+    fpr_lr, tpr_lr, _ = roc_curve(y_test, lr_probs)
+
+    plt.figure()
+    plt.plot(fpr_rf, tpr_rf, label=f"RF (AUC={roc_auc_score(y_test, rf_probs):.2f})")
+    plt.plot(fpr_lr, tpr_lr, label=f"LR (AUC={roc_auc_score(y_test, lr_probs):.2f})")
+    plt.plot([0,1],[0,1],"k--")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.legend()
+    st.pyplot(plt)
+
+    if st.button("Back to Input Page"):
+        st.session_state.page = "input"
         st.rerun()
