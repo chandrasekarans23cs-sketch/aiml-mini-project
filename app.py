@@ -107,15 +107,27 @@ else:
     inputs = st.session_state.inputs
     st.subheader("Entered Values")
 
-    # Show descriptive labels for user clarity
-    st.write({
-        "Urine Specific Gravity": inputs["gravity"],
-        "Urine pH": inputs["ph"],
-        "Osmolality": inputs["osmo"],
-        "Conductivity": inputs["cond"],
-        "Urea": inputs["urea"],
-        "Calcium": inputs["calc"]
+    # Show descriptive labels in a clean table
+    entered_values = pd.DataFrame({
+        "Parameter": [
+            "Urine Specific Gravity",
+            "Urine pH",
+            "Osmolality",
+            "Conductivity",
+            "Urea",
+            "Calcium"
+        ],
+        "Value": [
+            inputs["gravity"],
+            inputs["ph"],
+            inputs["osmo"],
+            inputs["cond"],
+            inputs["urea"],
+            inputs["calc"]
+        ]
     })
+
+    st.table(entered_values)
 
     input_data = np.array([[inputs["gravity"],
                             inputs["ph"],
