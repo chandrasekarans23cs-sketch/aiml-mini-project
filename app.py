@@ -19,9 +19,18 @@ def train_models():
     if "target" in df.columns:
         target_col = "target"
     else:
-        target_col = df.columns[-1]  # assume last column is target
+        target_col = df.columns[-1]
 
-    X = df.drop(target_col, axis=1)
+    # Use only the 6 features you collect from the user
+    selected_features = ["gravity", "ph", "osmo", "cond", "urea", "calc"]
+
+    # Check dataset has these columns
+    missing = [f for f in selected_features if f not in df.columns]
+    if missing:
+        st.error(f"Dataset is missing expected columns: {missing}")
+        st.stop()
+
+    X = df[selected_features]
     y = df[target_col]
 
     scaler = StandardScaler()
@@ -63,12 +72,12 @@ if not st.session_state.show_results:
 
     if st.button("Predict"):
         st.session_state.inputs = {
-            "Urine Specific Gravity": gravity,
-            "Urine pH": ph,
-            "Osmolality": osmo,
-            "Conductivity": cond,
-            "Urea": urea,
-            "Calcium": calc
+            "gravity": gravity,
+            "ph": ph,
+            "osmo": osmo,
+            "cond": cond,
+            "urea": urea,
+            "calc": calc
         }
         st.session_state.show_results = True
         st.rerun()   # ✅ updated
@@ -83,12 +92,12 @@ else:
     st.subheader("Entered Values")
     st.write(inputs)
 
-    input_data = np.array([[inputs["Urine Specific Gravity"],
-                            inputs["Urine pH"],
-                            inputs["Osmolality"],
-                            inputs["Conductivity"],
-                            inputs["Urea"],
-                            inputs["Calcium"]]])
+    input_data = np.array([[inputs["gravity"],
+                            inputs["ph"],
+                            inputs["osmo"],
+                            inputs["cond"],
+                            inputs["urea"],
+                            inputs["calc"]]])
     input_scaled = scaler.transform(input_data)
 
     rf_pred = rf_model.predict(input_scaled)[0]
